@@ -1,0 +1,15 @@
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-US
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-NO
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-AU
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-CA
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-GB
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-DK
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-SE
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-CH
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-DE
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-NL
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-NZ
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-AE
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-SG
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-FR
+core-residential.evomi.com:1000:wakiurrahm2:WG7oFPWXhvXVRUcPGA5x_country-IE

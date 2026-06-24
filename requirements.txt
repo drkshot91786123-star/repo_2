@@ -1,0 +1,4 @@
+playwright>=1.44
+stem>=1.8
+requests
+beautifulsoup4
