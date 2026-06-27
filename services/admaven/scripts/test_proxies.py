@@ -4,13 +4,16 @@ Test each proxy in Proxies.txt — verify connection and IP.
 Uses ProxyPool (same as auto_locker) for correct parsing.
 """
 import asyncio
+import os
 import sys
-sys.path.insert(0, "/Users/waqiur/Personal/website_automation")
 
-from proxy import ProxyPool
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, ROOT_DIR)
+
+from core.proxy import ProxyPool
 from playwright.async_api import async_playwright
 
-PROXY_FILE = "Proxies.txt"
+PROXY_FILE = os.path.join(ROOT_DIR, "config", "Proxies.txt")
 
 async def test_proxy(idx, proxy_dict):
     """Test a single proxy — connect and fetch exit IP."""

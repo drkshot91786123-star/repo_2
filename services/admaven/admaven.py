@@ -14,9 +14,14 @@ Steps:
 """
 
 import asyncio
+import os
 import random
+import sys
 import urllib.parse
 import urllib.request
+
+# Add project root to path so core/ is importable
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 _BLOCK_DOMAINS = {
     "js.stripe.com",
@@ -28,10 +33,10 @@ _BLOCK_DOMAINS = {
     "api.taboola.com",
 }
 
-from browser import DEVICE_PROFILE, MobileBrowser
-from tor import TorController
-from proxy import ProxyPool
-from proxy_chain import ProxyChain, DirectProxyChain
+from core.browser import DEVICE_PROFILE, MobileBrowser
+from core.tor import TorController
+from core.proxy import ProxyPool
+from core.proxy_chain import ProxyChain, DirectProxyChain
 
 _UA = ("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36")

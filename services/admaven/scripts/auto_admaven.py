@@ -27,25 +27,26 @@ import os
 import random
 import sys
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
+SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
+ADMAVEN_DIR  = os.path.dirname(SCRIPT_DIR)                        # services/locker/
+ROOT_DIR    = os.path.dirname(os.path.dirname(ADMAVEN_DIR))       # project root
 
-sys.path.insert(0, PROJECT_DIR)
+sys.path.insert(0, ROOT_DIR)
 
-from locker import run
+from services.admaven.admaven import run
 import random
-from proxy import ProxyPool
+from core.proxy import ProxyPool
 
 # import create_locker from sibling script without requiring a package __init__
 _spec = _ilu.spec_from_file_location("create_locker", os.path.join(SCRIPT_DIR, "create_locker.py"))
 _mod = _ilu.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 create_locker = _mod.create_locker
-DEFAULT_PROXIES = os.path.join(PROJECT_DIR, "Proxies.txt")
-LINKS_FILE = os.path.join(PROJECT_DIR, "daily_links.json")
-DESTINATIONS_FILE = os.path.join(PROJECT_DIR, "destinations.txt")
+DEFAULT_PROXIES = os.path.join(ROOT_DIR, "config", "Proxies.txt")
+LINKS_FILE = os.path.join(ADMAVEN_DIR, "daily_links.json")
+DESTINATIONS_FILE = os.path.join(ADMAVEN_DIR, "destinations.txt")
 
-LOGS_FILE = os.path.join(PROJECT_DIR, "run_logs.jsonl")
+LOGS_FILE = os.path.join(ADMAVEN_DIR, "logs", "run_logs.jsonl")
 
 
 class ProxyPoolMixed:
@@ -175,7 +176,7 @@ async def main_async(args):
     pool = None
     if not args.no_proxy:
         try:
-            secondary_file = os.path.join(PROJECT_DIR, "Proxies_Any.txt")
+            secondary_file = os.path.join(ROOT_DIR, "config", "Proxies_Any.txt")
             pool = ProxyPoolMixed(args.proxy_file, secondary_file if os.path.exists(secondary_file) else None)
             print(f"[proxy] 70% from {os.path.basename(args.proxy_file)}, 30% from Proxies_Any.txt")
         except Exception as e:
