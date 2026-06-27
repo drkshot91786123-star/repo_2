@@ -12,7 +12,8 @@ import sys
 import os
 
 SERVICES = {
-    "--admaven": "services.admaven.scripts.auto_admaven",
+    "--admaven":     "services.admaven.scripts.auto_admaven",
+    "--linkvertise": "services.linkvertise.scripts.auto_linkvertise",
 }
 
 def main():

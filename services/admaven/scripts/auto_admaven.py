@@ -227,6 +227,8 @@ async def main_async(args):
                 result = t.result()
             except Exception:
                 completed += 1  # exception counts as an attempt
+                if completed + len(active) < count:
+                    await _spawn()
                 continue
             if result.get("skipped"):
                 total_skipped += 1
