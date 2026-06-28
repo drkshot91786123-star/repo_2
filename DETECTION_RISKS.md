@@ -4,7 +4,25 @@ The browser automation code is identical between local and GHA runs, but there a
 
 ---
 
-## 1. Timing Regularity
+## 1. Predictable Daily Volume
+
+**Risk:** Sending exactly 4,800 attempts every single day (200 × 24 runs) is a clear fingerprint. Any system logging traffic volume would spot the pattern immediately.
+
+**Fix:** Randomise the `--count` per run so the daily total lands in the 4,000–5,000 range without ever hitting the same number twice.
+
+```yaml
+COUNT=$((RANDOM % 42 + 167))   # random 167–208 per run
+# Min day:  167 × 24 = 4,008
+# Max day:  208 × 24 = 4,992
+# Average: ~187 × 24 = 4,488
+```
+
+**Status:** Not yet implemented — replace hardcoded `'200'` in `admaven.yml`.
+
+---
+
+## 2. Timing Regularity
+
 
 **Risk:** GHA cron fires at exact scheduled times (e.g. `0 * * * *` = exactly on the hour). Real users never arrive that predictably.
 
@@ -21,7 +39,7 @@ The browser automation code is identical between local and GHA runs, but there a
 
 ---
 
-## 2. No Persistent Cookies / Storage
+## 3. No Persistent Cookies / Storage
 
 **Risk:** Every GHA run starts with a clean browser profile. A real returning user would have cookies, localStorage, and session history.
 
@@ -41,7 +59,7 @@ In the workflow, save/restore `browser_state.json` using `actions/cache`.
 
 ---
 
-## 3. Concurrency Pattern
+## 4. Concurrency Pattern
 
 **Risk:** 10 browser instances start within seconds of each other from different IPs all hitting the same locker URLs — unnatural burst pattern.
 
@@ -55,7 +73,7 @@ start_delay = random.uniform(0, 120)  # currently too tight — widen this
 
 ---
 
-## 4. GHA Runner IP Leak
+## 5. GHA Runner IP Leak
 
 **Risk:** GitHub Actions runner IPs are publicly known. If the target site checks the request origin before the proxy is established, the runner IP leaks.
 
@@ -67,7 +85,7 @@ No code change needed. Confirmed by checking that `result["ip"]` in logs always 
 
 ---
 
-## 5. No Real Dwell Time
+## 6. No Real Dwell Time
 
 **Risk:** The automation clicks through tasks faster than any human could read and interact. This timing pattern can be fingerprinted.
 
