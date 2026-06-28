@@ -60,7 +60,7 @@ class ProxyPoolMixed:
             self.secondary = None
 
     def pick(self):
-        if self.secondary and random.random() < 0.15:
+        if self.secondary and random.random() < 0.40:
             proxy = self.secondary.pick()
             proxy["_pool"] = "secondary"
         else:
