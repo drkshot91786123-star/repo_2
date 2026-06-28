@@ -2,22 +2,87 @@
 
 The browser automation code is identical between local and GHA runs, but there are differences that could flag traffic as non-human.
 
-## Potential Detection Points
+---
 
-**1. Timing regularity**
-GHA runs fire at exact scheduled times (e.g. every hour on the dot). Real users don't behave that way. Adding a random startup delay in the workflow reduces this signal.
+## 1. Timing Regularity
 
-**2. No persistent cookies/storage**
-Every GHA run starts with a clean browser profile. A returning real user would have cookies, localStorage, and browser history. Local runs have the same issue.
+**Risk:** GHA cron fires at exact scheduled times (e.g. `0 * * * *` = exactly on the hour). Real users never arrive that predictably.
 
-**3. Concurrency pattern**
-10 instances starting within seconds of each other from different IPs but all hitting the same locker URLs looks unnatural. Staggering start times helps.
+**Fix:** Add a random sleep at the start of the GHA workflow step, before the Python script runs. This shifts the actual browser activity to an unpredictable time within the scheduled window.
 
-**4. GHA runner IP leak**
-GitHub's runner IPs are publicly known. If the target site checks the origin IP before the proxy connection is established (e.g. during DNS), the runner IP could leak. The proxy should cover this fully once connected.
+```yaml
+- name: Run automation
+  run: |
+    sleep $((RANDOM % 1800))   # random delay up to 30 min
+    python3 run.py --admaven --count $COUNT --concurrency $CONC --logs
+```
 
-**5. No real dwell time**
-The automation completes tasks faster than a human would read and interact with the page.
+**Status:** Not yet implemented — add to `admaven.yml`.
+
+---
+
+## 2. No Persistent Cookies / Storage
+
+**Risk:** Every GHA run starts with a clean browser profile. A real returning user would have cookies, localStorage, and session history.
+
+**Fix:** Use Playwright's `storageState` to save browser state at the end of a run and restore it at the start of the next. Store the state file as a GitHub Actions cache artifact keyed by repo.
+
+```python
+# Save at end of run
+await context.storage_state(path="browser_state.json")
+
+# Restore at start of next run
+context = await browser.new_context(storage_state="browser_state.json", ...)
+```
+
+In the workflow, save/restore `browser_state.json` using `actions/cache`.
+
+**Status:** Not yet implemented.
+
+---
+
+## 3. Concurrency Pattern
+
+**Risk:** 10 browser instances start within seconds of each other from different IPs all hitting the same locker URLs — unnatural burst pattern.
+
+**Fix:** The code already has a `start_delay` parameter per instance. Increase the spread from a few seconds to 0–120s random delay so instances are distributed over 2 minutes rather than launching together.
+
+```python
+start_delay = random.uniform(0, 120)  # currently too tight — widen this
+```
+
+**Status:** Partially implemented (`start_delay` exists but window is narrow). Widen the range.
+
+---
+
+## 4. GHA Runner IP Leak
+
+**Risk:** GitHub Actions runner IPs are publicly known. If the target site checks the request origin before the proxy is established, the runner IP leaks.
+
+**Fix:** Already handled. When Playwright is configured with a proxy, it sends the full hostname to the proxy server for resolution — DNS never resolves locally. The runner IP never reaches the target site.
+
+No code change needed. Confirmed by checking that `result["ip"]` in logs always shows a residential Evomi IP, never a GitHub IP range.
+
+**Status:** Already mitigated.
+
+---
+
+## 5. No Real Dwell Time
+
+**Risk:** The automation clicks through tasks faster than any human could read and interact. This timing pattern can be fingerprinted.
+
+**Fix:** Add random pre-click delays per task to simulate a user reading before acting, and a random post-click wait before moving to the next task.
+
+```python
+await asyncio.sleep(random.uniform(2, 8))   # before clicking a task
+await asyncio.sleep(random.uniform(1, 4))   # after tab opens/closes
+```
+
+Also consider randomising the order in which tasks are clicked rather than always going top-to-bottom.
+
+**Status:** Not yet implemented — add delays inside the task click loop in `admaven.py`.
+
+---
 
 ## What Works in Our Favour
 
@@ -26,3 +91,4 @@ The automation completes tasks faster than a human would read and interact with 
 - Playwright with a real browser engine (not detectable as a headless bot)
 - Country-targeted proxies (high-CPM countries = high-quality residential IPs)
 - 60/40 mix of high-CPM and any-country proxies for traffic diversity
+- DNS routed through proxy — runner IP never reaches the target site
