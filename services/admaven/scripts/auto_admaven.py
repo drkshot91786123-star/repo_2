@@ -17,6 +17,7 @@ Other options:
 
 import argparse
 import asyncio
+import urllib.request
 from datetime import datetime, timezone, timedelta
 
 _IST = timezone(timedelta(hours=5, minutes=30))
@@ -121,6 +122,15 @@ def write_log(entry):
         f.write(json.dumps(entry) + "\n")
 
 
+def get_country(ip):
+    try:
+        with urllib.request.urlopen(f"http://ip-api.com/json/{ip}?fields=countryCode", timeout=5) as r:
+            data = json.loads(r.read())
+            return data.get("countryCode", "??")
+    except Exception:
+        return "??"
+
+
 MAX_CONCURRENT = 10
 
 
@@ -143,19 +153,24 @@ async def run_instance(idx, url, device, use_tor, headless, pool, logs=False, se
         status = "~" if skipped else ("✓" if redirected else "✗")
         print(f"\n[#{idx}] {status} device={result['device']}  ip={result['ip']}  redirect={result['redirect_url']}")
         if logs:
-            bw_kb = (result.get("bytes_sent", 0) + result.get("bytes_recv", 0)) / 1024
+            bw_kb    = (result.get("bytes_sent", 0) + result.get("bytes_recv", 0)) / 1024
+            pool_src = result.get("pool_source", "unknown")
+            mode     = "high_cpm" if pool_src == "primary" else "low_cpm"
+            country  = get_country(result["ip"]) if result.get("ip") else "??"
             entry = {
-                "ts": datetime.now(tz=_IST).strftime("%Y-%m-%d %I:%M:%S %p IST"),
+                "ts":       datetime.now(tz=_IST).strftime("%Y-%m-%d %I:%M:%S %p IST"),
                 "instance": idx,
-                "device": result["device"],
-                "ip": result["ip"],
-                "url": url,
+                "device":   result["device"],
+                "ip":       result["ip"],
+                "country":  country,
+                "mode":     mode,
+                "url":      url,
                 "redirect": redirect,
-                "success": redirected,
-                "bw_kb": round(bw_kb, 1),
+                "success":  redirected,
+                "bw_kb":    round(bw_kb, 1),
             }
             write_log(entry)
-            print(f"[#{idx}] logged → {LOGS_FILE}  ({bw_kb:.1f} KB)")
+            print(f"[#{idx}] logged → country={country}  mode={mode}  bw={bw_kb:.1f}KB")
         return result
 
 
