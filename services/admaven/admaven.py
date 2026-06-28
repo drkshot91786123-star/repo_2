@@ -34,9 +34,13 @@ _BLOCK_DOMAINS = {
 }
 
 from core.browser import DEVICE_PROFILE, MobileBrowser
-from core.tor import TorController
 from core.proxy import ProxyPool
 from core.proxy_chain import ProxyChain, DirectProxyChain
+
+try:
+    from core.tor import TorController
+except ImportError:
+    TorController = None
 
 _UA = ("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36")
