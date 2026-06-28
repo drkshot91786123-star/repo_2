@@ -56,10 +56,15 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          EVOMI_HOST: ${{ secrets.EVOMI_HOST }}
+          EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
+          EVOMI_USER: ${{ secrets.EVOMI_USER }}
+          EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
+          EVOMI_COUNTRIES: ${{ secrets.EVOMI_COUNTRIES }}
         run: |
           COUNT=${{ github.event.inputs.count || '200' }}
           CONC=${{ github.event.inputs.concurrency || '10' }}
-          python3 run.py --admaven --count $COUNT --concurrency $CONC --logs --no-proxy
+          python3 run.py --admaven --count $COUNT --concurrency $CONC --logs
 
       - name: Upload logs
         if: always() && steps.gate.outputs.run == 'true'
@@ -110,10 +115,15 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          EVOMI_HOST: ${{ secrets.EVOMI_HOST }}
+          EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
+          EVOMI_USER: ${{ secrets.EVOMI_USER }}
+          EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
+          EVOMI_COUNTRIES: ${{ secrets.EVOMI_COUNTRIES }}
         run: |
           COUNT=${{ github.event.inputs.count || '200' }}
           CONC=${{ github.event.inputs.concurrency || '10' }}
-          python3 run.py --admaven --count $COUNT --concurrency $CONC --logs --no-proxy
+          python3 run.py --admaven --count $COUNT --concurrency $CONC --logs
 
       - name: Upload logs
         if: always() && steps.gate.outputs.run == 'true'

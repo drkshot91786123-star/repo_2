@@ -11,6 +11,16 @@ Run python3 run.py --admaven --help for service-specific options.
 import sys
 import os
 
+# Load .env from config/ if present (local dev)
+_env_file = os.path.join(os.path.dirname(__file__), "config", ".env")
+if os.path.exists(_env_file):
+    with open(_env_file) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+
 SERVICES = {
     "--admaven":     "services.admaven.scripts.auto_admaven",
     "--linkvertise": "services.linkvertise.scripts.auto_linkvertise",
