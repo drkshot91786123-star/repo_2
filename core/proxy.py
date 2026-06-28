@@ -13,24 +13,14 @@ def _build_proxies(countries_env_key):
     pwd  = os.environ.get("EVOMI_PASS")
     if not all([host, port, user, pwd]):
         raise ValueError("EVOMI_HOST, EVOMI_PORT, EVOMI_USER, EVOMI_PASS must all be set")
-    countries = os.environ.get(countries_env_key, "")
-    proxies = []
+    countries = [c.strip() for c in os.environ.get(countries_env_key, "").split(",") if c.strip()]
     if countries:
-        for country in countries.split(","):
-            country = country.strip()
-            if country:
-                proxies.append({
-                    "server":   f"http://{host}:{port}",
-                    "username": f"{user}_country-{country}",
-                    "password": pwd,
-                })
-    else:
-        proxies.append({
-            "server":   f"http://{host}:{port}",
-            "username": user,
-            "password": pwd,
-        })
-    return proxies
+        return [
+            {"server": f"http://{host}:{port}", "username": f"{user}_country-{c}", "password": pwd}
+            for c in countries
+        ]
+    # No countries = Evomi picks any country (bare credentials, no suffix)
+    return [{"server": f"http://{host}:{port}", "username": user, "password": pwd}]
 
 
 class ProxyPool:
