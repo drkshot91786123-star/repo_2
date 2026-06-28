@@ -1,21 +1,19 @@
 """
-Residential proxy pool — loads proxies from a file (host:port:user:pass, one per line)
-or generates them from EVOMI_* environment variables if the file doesn't exist.
+Residential proxy pool — built from EVOMI_* environment variables.
 """
 
 import os
 import random
 
 
-def _proxies_from_env():
-    """Build proxy list from EVOMI_* env vars. Returns [] if vars not set."""
+def _build_proxies(countries_env_key):
     host = os.environ.get("EVOMI_HOST")
     port = os.environ.get("EVOMI_PORT")
     user = os.environ.get("EVOMI_USER")
     pwd  = os.environ.get("EVOMI_PASS")
-    countries = os.environ.get("EVOMI_COUNTRIES", "")
     if not all([host, port, user, pwd]):
-        return []
+        raise ValueError("EVOMI_HOST, EVOMI_PORT, EVOMI_USER, EVOMI_PASS must all be set")
+    countries = os.environ.get(countries_env_key, "")
     proxies = []
     if countries:
         for country in countries.split(","):
@@ -36,39 +34,13 @@ def _proxies_from_env():
 
 
 class ProxyPool:
-    def __init__(self, path=None):
-        self.proxies = []
-
-        if path and os.path.exists(path):
-            with open(path) as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    parts = line.split(":")
-                    if len(parts) != 4:
-                        continue
-                    ip, port, user, pwd = parts
-                    self.proxies.append({
-                        "server":   f"http://{ip}:{port}",
-                        "username": user,
-                        "password": pwd,
-                    })
-            if self.proxies:
-                print(f"[proxy] loaded {len(self.proxies)} proxies from {path}")
-                return
-
-        self.proxies = _proxies_from_env()
-        if self.proxies:
-            print(f"[proxy] loaded {len(self.proxies)} proxies from env vars")
-            return
-
-        raise ValueError("No proxies available — set EVOMI_* env vars or provide a proxy file")
+    def __init__(self, countries_env_key="EVOMI_HIGH_CPM_COUNTRIES"):
+        self.proxies = _build_proxies(countries_env_key)
+        print(f"[proxy] {len(self.proxies)} proxies from env ({countries_env_key})")
 
     def pick(self):
-        """Return a random proxy dict ready for Playwright's proxy= option."""
         p = random.choice(self.proxies)
-        print(f"[proxy] using {p['server']}")
+        print(f"[proxy] using {p['server']} user={p['username']}")
         return p
 
     def __len__(self):

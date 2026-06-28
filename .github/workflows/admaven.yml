@@ -60,7 +60,7 @@ jobs:
           EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
           EVOMI_USER: ${{ secrets.EVOMI_USER }}
           EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
-          EVOMI_COUNTRIES: ${{ secrets.EVOMI_COUNTRIES }}
+          EVOMI_HIGH_CPM_COUNTRIES: ${{ secrets.EVOMI_HIGH_CPM_COUNTRIES }}
         run: |
           COUNT=${{ github.event.inputs.count || '200' }}
           CONC=${{ github.event.inputs.concurrency || '10' }}
@@ -119,7 +119,7 @@ jobs:
           EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
           EVOMI_USER: ${{ secrets.EVOMI_USER }}
           EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
-          EVOMI_COUNTRIES: ${{ secrets.EVOMI_COUNTRIES }}
+          EVOMI_HIGH_CPM_COUNTRIES: ${{ secrets.EVOMI_HIGH_CPM_COUNTRIES }}
         run: |
           COUNT=${{ github.event.inputs.count || '200' }}
           CONC=${{ github.event.inputs.concurrency || '10' }}

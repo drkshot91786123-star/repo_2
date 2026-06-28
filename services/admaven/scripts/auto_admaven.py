@@ -50,15 +50,15 @@ LOGS_FILE = os.path.join(ADMAVEN_DIR, "logs", "run_logs.jsonl")
 
 
 class ProxyPoolMixed:
-    """Blend two proxy pools: 70% from primary (high-CPM countries), 30% from secondary (any)."""
-    def __init__(self, primary_file, secondary_file=None):
-        self.primary = ProxyPool(primary_file)
-        self.secondary = ProxyPool(secondary_file) if secondary_file else None
-        self.primary_success = 0
-        self.secondary_success = 0
+    """Blend two proxy pools: 70% high-CPM countries, 30% any countries."""
+    def __init__(self):
+        self.primary = ProxyPool("EVOMI_HIGH_CPM_COUNTRIES")
+        try:
+            self.secondary = ProxyPool("EVOMI_ANY_COUNTRIES")
+        except Exception:
+            self.secondary = None
 
     def pick(self):
-        """Pick from primary 70% of the time, secondary 30%."""
         if self.secondary and random.random() < 0.30:
             proxy = self.secondary.pick()
             proxy["_pool"] = "secondary"
@@ -66,12 +66,6 @@ class ProxyPoolMixed:
         proxy = self.primary.pick()
         proxy["_pool"] = "primary"
         return proxy
-
-    def record_success(self, proxy_dict):
-        """Mark which pool this proxy came from for success tracking."""
-        # We'll infer from the proxy dict which pool it came from
-        # (This is handled in run_instance where we call record_pool_success)
-        pass
 
     def __len__(self):
         return len(self.primary) + (len(self.secondary) if self.secondary else 0)
@@ -176,11 +170,10 @@ async def main_async(args):
     pool = None
     if not args.no_proxy:
         try:
-            secondary_file = os.path.join(ROOT_DIR, "config", "Proxies_Any.txt")
-            pool = ProxyPoolMixed(args.proxy_file, secondary_file if os.path.exists(secondary_file) else None)
-            print(f"[proxy] 70% from {os.path.basename(args.proxy_file)}, 30% from Proxies_Any.txt")
+            pool = ProxyPoolMixed()
+            print(f"[proxy] 70% high-CPM, 30% any")
         except Exception as e:
-            print(f"[warn] could not load proxy file: {e}")
+            print(f"[warn] could not load proxies: {e}")
 
     if args.headed:
         headless = False
@@ -275,8 +268,8 @@ def main():
                     help="route traffic through Tor (slower but hides real IP from proxy provider)")
     ap.add_argument("--logs", action="store_true",
                     help="append device+IP log entry to run_logs.jsonl after each instance")
-    ap.add_argument("--proxy-file", default=DEFAULT_PROXIES,
-                    help="path to proxy list file (default: Webshare 10 proxies.txt)")
+    ap.add_argument("--proxy-file", default=None,
+                    help="(unused — proxies loaded from EVOMI_* env vars)")
     args = ap.parse_args()
 
     # args.tor is already set by --tor flag (default False)
