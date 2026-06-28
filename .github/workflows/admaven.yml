@@ -24,7 +24,7 @@ jobs:
         id: gate
         run: |
           HOUR=$(date -u +%-H)
-          SLOT="${{ secrets.REPO_SLOT }}"  # set to "1" (even) or "2" (odd) per repo
+          SLOT="${{ secrets.REPO_SLOT }}"
           EVENT="${{ github.event_name }}"
           if [ "$EVENT" = "workflow_dispatch" ]; then
             echo "run=true" >> $GITHUB_OUTPUT
@@ -49,16 +49,15 @@ jobs:
           playwright install chromium
           playwright install-deps chromium
 
-      - name: Write proxy files
-        if: steps.gate.outputs.run == 'true'
-        run: |
-          mkdir -p config
-          echo "${{ secrets.PROXIES }}" > config/Proxies.txt
-          echo "${{ secrets.PROXIES_ANY }}" > config/Proxies_Any.txt
-
       - name: Run AdMaven job 1
         if: steps.gate.outputs.run == 'true'
         env:
+          EVOMI_HOST: ${{ secrets.EVOMI_HOST }}
+          EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
+          EVOMI_USER: ${{ secrets.EVOMI_USER }}
+          EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
+          EVOMI_HIGH_CPM_COUNTRIES: ${{ secrets.EVOMI_HIGH_CPM_COUNTRIES }}
+          EVOMI_ANY_COUNTRIES: ${{ secrets.EVOMI_ANY_COUNTRIES }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GIST_ID: ${{ secrets.GIST_ID }}
@@ -110,16 +109,15 @@ jobs:
           playwright install chromium
           playwright install-deps chromium
 
-      - name: Write proxy files
-        if: steps.gate.outputs.run == 'true'
-        run: |
-          mkdir -p config
-          echo "${{ secrets.PROXIES }}" > config/Proxies.txt
-          echo "${{ secrets.PROXIES_ANY }}" > config/Proxies_Any.txt
-
       - name: Run AdMaven job 2
         if: steps.gate.outputs.run == 'true'
         env:
+          EVOMI_HOST: ${{ secrets.EVOMI_HOST }}
+          EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
+          EVOMI_USER: ${{ secrets.EVOMI_USER }}
+          EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
+          EVOMI_HIGH_CPM_COUNTRIES: ${{ secrets.EVOMI_HIGH_CPM_COUNTRIES }}
+          EVOMI_ANY_COUNTRIES: ${{ secrets.EVOMI_ANY_COUNTRIES }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GIST_ID: ${{ secrets.GIST_ID }}
