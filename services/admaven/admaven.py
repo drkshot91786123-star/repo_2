@@ -287,7 +287,7 @@ async def _try_with_proxy(url, chosen, proxy, headless, poll_interval, timeout):
 
 
 async def run(url, device=None, use_tor=False, headless=False,
-              poll_interval=5, timeout=400, proxy_pool=None):
+              poll_interval=5, timeout=180, proxy_pool=None):
     """
     Run the full locker flow.  When proxy_pool + use_tor, cycle through proxies
     until the page loads with actual task rows (site accepts the IP).
