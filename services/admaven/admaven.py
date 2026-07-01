@@ -277,9 +277,6 @@ async def _try_with_proxy(url, chosen, proxy, headless, poll_interval, timeout):
         result["redirect_url"] = page.url
         result["success"] = True
         print(f"[redirect] {page.url}")
-        delay = random.uniform(5, 10)
-        print(f"[wait]   holding for {delay:.1f}s before closing...")
-        await asyncio.sleep(delay)
         print(f"[close]  done — closing browser")
 
     result["bytes_sent"] = _bw["sent"]; result["bytes_recv"] = _bw["recv"]
