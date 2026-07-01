@@ -239,6 +239,7 @@ async def _try_with_proxy(url, chosen, proxy, headless, poll_interval, timeout):
         else:
             print("[timeout] tasks did not complete — aborting")
             result["reason"] = "tasks_poll_timeout"
+            result["bytes_sent"] = _bw["sent"]; result["bytes_recv"] = _bw["recv"]
             return True, result  # page loaded fine, just slow tasks — don't retry proxy
 
         print("[done]   all tasks complete")
@@ -264,6 +265,7 @@ async def _try_with_proxy(url, chosen, proxy, headless, poll_interval, timeout):
             if not enabled:
                 print("[error]  unlock button never enabled")
                 result["reason"] = "unlock_btn_disabled"
+                result["bytes_sent"] = _bw["sent"]; result["bytes_recv"] = _bw["recv"]
                 return True, result
 
         await page.click(UNLOCK_SEL)

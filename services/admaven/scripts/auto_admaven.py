@@ -27,6 +27,7 @@ import json
 import os
 import random
 import sys
+import time
 
 SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
 ADMAVEN_DIR  = os.path.dirname(SCRIPT_DIR)                        # services/locker/
@@ -44,7 +45,6 @@ _mod = _ilu.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 create_locker = _mod.create_locker
 LINKS_FILE = os.path.join(ADMAVEN_DIR, "daily_links.json")
-PASTE_URL_FILE = os.path.join(ADMAVEN_DIR, "paste_url.txt")
 
 os.makedirs(os.path.join(ADMAVEN_DIR, "logs"), exist_ok=True)
 _run_id = os.environ.get("GITHUB_RUN_NUMBER") or datetime.now(tz=timezone(timedelta(hours=5, minutes=30))).strftime("%Y%m%d_%H%M%S")
@@ -77,41 +77,20 @@ def file_hash(path):
     return hashlib.md5(open(path, "rb").read()).hexdigest()
 
 
-def fetch_destinations_from_paste() -> list[str]:
-    """Fetch paste.rs URL from paste_url.txt and parse destination links."""
-    import urllib.request
-    if not os.path.exists(PASTE_URL_FILE):
-        print(f"[error] paste_url.txt not found — run sync_destinations.py first")
-        sys.exit(1)
-    paste_url = open(PASTE_URL_FILE).read().strip()
-    print(f"[sync]  fetching destinations from {paste_url} ...")
-    with urllib.request.urlopen(paste_url) as resp:
-        content = resp.read().decode()
-    links = [l.strip() for l in content.splitlines() if l.strip().startswith("http")]
-    return links
-
 
 DESTINATIONS_FILE = os.path.join(ADMAVEN_DIR, "destinations.txt")
 
 
-def auto_sync_to_paste():
-    """Sync destinations.txt → paste.rs and update paste_url.txt."""
+def post_to_paste_rs(content: str) -> str:
+    """Post content to paste.rs and return the URL."""
     import urllib.request
-    template_file = os.path.join(ADMAVEN_DIR, "destinations_template.txt")
-    template = open(template_file).read() if os.path.exists(template_file) else ""
-    links = [l.strip() for l in open(DESTINATIONS_FILE) if l.strip().startswith("http")]
-    content = template + "\n" + "\n".join(links) + "\n"
     req = urllib.request.Request("https://paste.rs/", data=content.encode(), method="POST")
     with urllib.request.urlopen(req) as resp:
-        url = resp.read().decode().strip()
-    with open(PASTE_URL_FILE, "w") as f:
-        f.write(url + "\n")
-    print(f"[sync]  destinations synced → {url}")
-    return url
+        return resp.read().decode().strip()
 
 
 def load_daily_links():
-    """Return locker links, regenerating if destinations.txt has changed."""
+    """Return locker links — 1 per destination, each via its own paste.rs URL."""
     if not os.path.exists(DESTINATIONS_FILE):
         print(f"[error] destinations.txt not found")
         sys.exit(1)
@@ -125,17 +104,27 @@ def load_daily_links():
             print(f"[links] destinations unchanged — using {len(data['links'])} existing locker links")
             return data["links"]
 
-    print("[sync]  destinations.txt changed — syncing to paste.rs...")
-    paste_url = auto_sync_to_paste()
+    template_file = os.path.join(ADMAVEN_DIR, "destinations_template.txt")
+    template = open(template_file).read() if os.path.exists(template_file) else ""
+    destinations = [l.strip() for l in open(DESTINATIONS_FILE) if l.strip().startswith("http")]
+    if not destinations:
+        print("[error] destinations.txt is empty")
+        sys.exit(1)
 
-    print(f"[links] generating locker link with paste.rs as destination...")
+    print(f"[sync]  {len(destinations)} destinations → posting each to paste.rs...")
     links = []
-    url = create_locker(paste_url.rstrip("/") + ".txt")
-    if url:
-        links.append(url)
-        print(f"  [1/1] {url}")
-    else:
-        print(f"  [1/1] failed")
+    for i, dest in enumerate(destinations):
+        if i > 0:
+            time.sleep(2)
+        content = template + "\n" + dest + "\n"
+        paste_url = post_to_paste_rs(content)
+        print(f"  [{i+1}/{len(destinations)}] paste → {paste_url}")
+        locker_url = create_locker(paste_url.rstrip("/") + ".txt")
+        if locker_url:
+            links.append(locker_url)
+            print(f"  [{i+1}/{len(destinations)}] locker → {locker_url}")
+        else:
+            print(f"  [{i+1}/{len(destinations)}] locker failed — skipping")
 
     if not links:
         print("[error] could not generate any locker links")
