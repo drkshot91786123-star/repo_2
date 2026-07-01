@@ -60,6 +60,7 @@ jobs:
           EVOMI_ANY_COUNTRIES: ${{ secrets.EVOMI_ANY_COUNTRIES }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RUN_SOURCE: gha_repo1
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
@@ -122,6 +123,7 @@ jobs:
           EVOMI_ANY_COUNTRIES: ${{ secrets.EVOMI_ANY_COUNTRIES }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RUN_SOURCE: gha_repo1
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |

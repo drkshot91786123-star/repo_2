@@ -21,7 +21,6 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 
 _IST = timezone(timedelta(hours=5, minutes=30))
-import hashlib
 import importlib.util as _ilu
 import json
 import os
@@ -43,8 +42,8 @@ _spec = _ilu.spec_from_file_location("create_locker", os.path.join(SCRIPT_DIR, "
 _mod = _ilu.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 create_locker = _mod.create_locker
-LINKS_FILE = os.path.join(ADMAVEN_DIR, "daily_links.json")
-PASTE_URL_FILE = os.path.join(ADMAVEN_DIR, "paste_url.txt")
+_SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+_SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
 os.makedirs(os.path.join(ADMAVEN_DIR, "logs"), exist_ok=True)
 _run_id = os.environ.get("GITHUB_RUN_NUMBER") or datetime.now(tz=timezone(timedelta(hours=5, minutes=30))).strftime("%Y%m%d_%H%M%S")
@@ -73,60 +72,45 @@ class ProxyPoolMixed:
         return len(self.primary) + (len(self.secondary) if self.secondary else 0)
 
 
-def file_hash(path):
-    return hashlib.md5(open(path, "rb").read()).hexdigest()
+
+def _supabase_client():
+    from supabase import create_client
+    return create_client(_SUPABASE_URL, _SUPABASE_KEY)
 
 
-def fetch_destinations_from_paste() -> list[str]:
-    """Fetch paste.rs URL from paste_url.txt and parse destination links."""
+def fetch_active_destinations() -> list[dict]:
+    return _supabase_client().table("destinations").select("*").eq("active", True).execute().data
+
+
+def log_run_to_supabase(entry: dict) -> None:
+    try:
+        row = dict(entry)
+        row["source"] = os.environ.get("RUN_SOURCE", "local")
+        row.pop("id", None)
+        _supabase_client().table("run_logs").insert(row).execute()
+    except Exception as e:
+        print(f"[supabase] log failed: {e}")
+
+
+def auto_sync_to_paste_from_list(urls: list) -> str:
     import urllib.request
-    if not os.path.exists(PASTE_URL_FILE):
-        print(f"[error] paste_url.txt not found — run sync_destinations.py first")
-        sys.exit(1)
-    paste_url = open(PASTE_URL_FILE).read().strip()
-    print(f"[sync]  fetching destinations from {paste_url} ...")
-    with urllib.request.urlopen(paste_url) as resp:
-        content = resp.read().decode()
-    links = [l.strip() for l in content.splitlines() if l.strip().startswith("http")]
-    return links
-
-
-DESTINATIONS_FILE = os.path.join(ADMAVEN_DIR, "destinations.txt")
-
-
-def auto_sync_to_paste():
-    """Sync destinations.txt → paste.rs and update paste_url.txt."""
-    import urllib.request
-    template_file = os.path.join(ADMAVEN_DIR, "destinations_template.txt")
-    template = open(template_file).read() if os.path.exists(template_file) else ""
-    links = [l.strip() for l in open(DESTINATIONS_FILE) if l.strip().startswith("http")]
-    content = template + "\n" + "\n".join(links) + "\n"
+    header = "\U0001f3af Find your link below, Thank you for choosing us!!!!!"
+    content = header + "\n\n" + "\n".join(urls) + "\n"
     req = urllib.request.Request("https://paste.rs/", data=content.encode(), method="POST")
     with urllib.request.urlopen(req) as resp:
         url = resp.read().decode().strip()
-    with open(PASTE_URL_FILE, "w") as f:
-        f.write(url + "\n")
     print(f"[sync]  destinations synced → {url}")
     return url
 
 
 def load_daily_links():
-    """Return locker links, regenerating if destinations.txt has changed."""
-    if not os.path.exists(DESTINATIONS_FILE):
-        print(f"[error] destinations.txt not found")
+    """Fetch active destinations from Supabase, sync to paste.rs, generate locker link."""
+    destinations = fetch_active_destinations()
+    if not destinations:
+        print("[error] no active destinations in Supabase — activate links in dashboard")
         sys.exit(1)
 
-    current_hash = file_hash(DESTINATIONS_FILE)
-
-    if os.path.exists(LINKS_FILE):
-        with open(LINKS_FILE) as f:
-            data = json.load(f)
-        if data.get("source_hash") == current_hash and data.get("links"):
-            print(f"[links] destinations unchanged — using {len(data['links'])} existing locker links")
-            return data["links"]
-
-    print("[sync]  destinations.txt changed — syncing to paste.rs...")
-    paste_url = auto_sync_to_paste()
+    paste_url = auto_sync_to_paste_from_list([d["url"] for d in destinations])
 
     print(f"[links] generating locker link with paste.rs as destination...")
     links = []
@@ -141,10 +125,7 @@ def load_daily_links():
         print("[error] could not generate any locker links")
         sys.exit(1)
 
-    with open(LINKS_FILE, "w") as f:
-        json.dump({"source_hash": current_hash, "links": links}, f, indent=2)
-
-    print(f"[links] saved {len(links)} links to {LINKS_FILE}\n")
+    print(f"[links] {len(links)} locker link(s) ready\n")
     return links
 
 
@@ -204,6 +185,7 @@ async def run_instance(idx, url, device, use_tor, headless, pool, logs=False, se
                 "bw_kb":    round(bw_kb, 1),
             }
             write_log(entry)
+            log_run_to_supabase(entry)
             print(f"[#{idx}] logged → country={country}  mode={mode}  bw={bw_kb:.1f}KB")
         return result
 
