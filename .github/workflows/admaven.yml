@@ -8,10 +8,10 @@ on:
     inputs:
       count:
         description: 'Runs per job'
-        default: '100'
+        default: '50'
       concurrency:
         description: 'Concurrent browsers'
-        default: '10'
+        default: '5'
 
 jobs:
   run-job-1:
@@ -45,8 +45,8 @@ jobs:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
           INPUT_COUNT="${{ github.event.inputs.count }}"
-          COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 95))}
-          CONC=${{ github.event.inputs.concurrency || '10' }}
+          COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
+          CONC=${{ github.event.inputs.concurrency || '5' }}
           sleep $((RANDOM % 180))
           python3 run.py --admaven --count $COUNT --concurrency $CONC --logs
 
@@ -88,8 +88,8 @@ jobs:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
           INPUT_COUNT="${{ github.event.inputs.count }}"
-          COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 95))}
-          CONC=${{ github.event.inputs.concurrency || '10' }}
+          COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
+          CONC=${{ github.event.inputs.concurrency || '5' }}
           sleep $((RANDOM % 180))
           python3 run.py --admaven --count $COUNT --concurrency $CONC --logs
 
@@ -98,4 +98,90 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: run-logs-job2-${{ github.run_number }}
+          path: services/admaven/logs/run_logs.jsonl
+
+  run-job-3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright requests
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run AdMaven job 3
+        env:
+          EVOMI_HOST: ${{ secrets.EVOMI_HOST }}
+          EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
+          EVOMI_USER: ${{ secrets.EVOMI_USER }}
+          EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
+          EVOMI_HIGH_CPM_COUNTRIES: ${{ secrets.EVOMI_HIGH_CPM_COUNTRIES }}
+          EVOMI_ANY_COUNTRIES: ${{ secrets.EVOMI_ANY_COUNTRIES }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: |
+          INPUT_COUNT="${{ github.event.inputs.count }}"
+          COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
+          CONC=${{ github.event.inputs.concurrency || '5' }}
+          sleep $((RANDOM % 180))
+          python3 run.py --admaven --count $COUNT --concurrency $CONC --logs
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-logs-job3-${{ github.run_number }}
+          path: services/admaven/logs/run_logs.jsonl
+
+  run-job-4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright requests
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run AdMaven job 4
+        env:
+          EVOMI_HOST: ${{ secrets.EVOMI_HOST }}
+          EVOMI_PORT: ${{ secrets.EVOMI_PORT }}
+          EVOMI_USER: ${{ secrets.EVOMI_USER }}
+          EVOMI_PASS: ${{ secrets.EVOMI_PASS }}
+          EVOMI_HIGH_CPM_COUNTRIES: ${{ secrets.EVOMI_HIGH_CPM_COUNTRIES }}
+          EVOMI_ANY_COUNTRIES: ${{ secrets.EVOMI_ANY_COUNTRIES }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: |
+          INPUT_COUNT="${{ github.event.inputs.count }}"
+          COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
+          CONC=${{ github.event.inputs.concurrency || '5' }}
+          sleep $((RANDOM % 180))
+          python3 run.py --admaven --count $COUNT --concurrency $CONC --logs
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-logs-job4-${{ github.run_number }}
           path: services/admaven/logs/run_logs.jsonl
