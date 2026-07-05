@@ -1,12 +1,11 @@
 import Navbar from './components/Navbar.jsx'
+import Home from './pages/Home.jsx'
 
 export default function App() {
   return (
-    <div>
+    <>
       <Navbar />
-      <div style={{ paddingTop: '64px', color: 'white', padding: '100px 48px' }}>
-        Cinemap — components loading
-      </div>
-    </div>
+      <Home />
+    </>
   )
 }
