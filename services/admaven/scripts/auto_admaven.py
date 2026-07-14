@@ -35,6 +35,7 @@ ROOT_DIR    = os.path.dirname(os.path.dirname(ADMAVEN_DIR))       # project root
 
 sys.path.insert(0, ROOT_DIR)
 
+from core.browser import ensure_playwright_browsers
 from services.admaven.admaven import run
 import random
 from core.proxy import ProxyPool
@@ -333,6 +334,8 @@ def main():
     ap.add_argument("--logs", action="store_true",
                     help="append device+IP log entry to run_logs.jsonl after each instance")
     args = ap.parse_args()
+
+    ensure_playwright_browsers(["chromium", "webkit"])
 
     # args.tor is already set by --tor flag (default False)
     asyncio.run(main_async(args))

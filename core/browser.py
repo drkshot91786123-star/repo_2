@@ -15,9 +15,37 @@ Optionally routes traffic through a proxy (see tor.py) to change the exit IP.
 """
 
 import asyncio
+import glob
 import os
+import subprocess
+import sys
 
 from playwright.async_api import async_playwright
+
+
+def ensure_playwright_browsers(browsers=("chromium", "webkit")):
+    """Verify each Playwright browser binary is on disk; download any that are missing.
+
+    Fails fast with a clear error if the install itself fails, so a bad runner
+    never silently degrades to Chromium-only.
+    """
+    cache = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or os.path.expanduser(
+        "~/Library/Caches/ms-playwright" if sys.platform == "darwin"
+        else "~/.cache/ms-playwright"
+    )
+    missing = [b for b in browsers if not glob.glob(os.path.join(cache, f"{b}-*"))]
+    if not missing:
+        return
+    print(f"[playwright] missing browsers: {missing} — installing…")
+    r = subprocess.run(
+        [sys.executable, "-m", "playwright", "install", *missing],
+        capture_output=True, text=True,
+    )
+    if r.returncode != 0:
+        raise RuntimeError(
+            f"playwright install {' '.join(missing)} failed:\n{r.stdout}\n{r.stderr}"
+        )
+    print(f"[playwright] installed: {missing}")
 
 # Default page = the diagnostic test.html at the repo root (one level up).
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
