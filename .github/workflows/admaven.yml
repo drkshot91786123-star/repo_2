@@ -43,8 +43,6 @@ jobs:
           ADMAVEN_SUB_ID: ${{ secrets.ADMAVEN_SUB_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          GIST_ID: ${{ secrets.GIST_ID }}
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
           INPUT_COUNT="${{ github.event.inputs.count }}"
           COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
@@ -89,8 +87,6 @@ jobs:
           ADMAVEN_SUB_ID: ${{ secrets.ADMAVEN_SUB_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          GIST_ID: ${{ secrets.GIST_ID }}
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
           INPUT_COUNT="${{ github.event.inputs.count }}"
           COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
@@ -135,8 +131,6 @@ jobs:
           ADMAVEN_SUB_ID: ${{ secrets.ADMAVEN_SUB_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          GIST_ID: ${{ secrets.GIST_ID }}
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
           INPUT_COUNT="${{ github.event.inputs.count }}"
           COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
@@ -181,8 +175,6 @@ jobs:
           ADMAVEN_SUB_ID: ${{ secrets.ADMAVEN_SUB_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          GIST_ID: ${{ secrets.GIST_ID }}
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
           INPUT_COUNT="${{ github.event.inputs.count }}"
           COUNT=${INPUT_COUNT:-$((RANDOM % 11 + 45))}
