@@ -1,8 +1,8 @@
 name: AdMaven Automation
 
 on:
-  schedule:
-    - cron: '0 * * * *'
+  # Scheduled runs are triggered from VPS cron via workflow_dispatch
+  # (scripts/trigger-admaven.sh) — GHA's own schedule is unreliable.
   workflow_dispatch:
     inputs:
       count:
